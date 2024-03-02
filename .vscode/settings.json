@@ -1,0 +1,24 @@
+{
+    "cmake.configureOnOpen": true,
+    "files.associations": {
+        "lvgl.h": "c",
+        "typeinfo": "cpp",
+        "*.tcc": "cpp",
+        "fstream": "cpp",
+        "cmath": "cpp",
+        "string_view": "c",
+        "algorithm": "c",
+        "random": "c",
+        "istream": "c",
+        "limits": "c",
+        "sstream": "c",
+        "array": "cpp",
+        "deque": "cpp",
+        "string": "cpp",
+        "unordered_map": "cpp",
+        "unordered_set": "cpp",
+        "vector": "cpp",
+        "memory": "cpp",
+        "gt_main.h": "c"
+    }
+}
