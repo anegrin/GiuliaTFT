@@ -23,7 +23,7 @@ Secondary screen:
 - Battery voltage (V) 
 - Battery IBS (%)
 - Engine oil degradation (%)
-- Tires temperatures (°C) - *work in progress*
+- Tires temperatures (°C) - *validation in progress*
 - Gearbox oil temperature (°C)
 
 On first boot a touch screen calibration display wizard will start and calibration data will be persisted. On the devices screen, after scanning, you can pick an adapter to connect to.
@@ -70,7 +70,7 @@ Relevant `build_flags`:
 
 # Right-Hand Drive models
 
-In [consts.h](includes/consts.h) I do `#define GT_ROTATION 3` because the TFT display is meant to be used in vertical and this rotation setting gives good visibility in landscape mode as I keep the device under AC controls; if you're driving a right-hand drive model you might wanna change this to `1`.
+In [consts.h](includes/consts.h) I do `#define GT_ROTATION 3` because the TFT display is meant to be used in portrait mode and this rotation setting gives good visibility in landscape mode as I keep the device under AC controls using a smartphone holder; if you're driving a right-hand drive model you might wanna change this to `1`.
 
 # License
 
