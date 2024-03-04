@@ -26,8 +26,7 @@ Secondary screen:
 - Tires temperatures (°C) - *work in progress*
 - Gearbox oil temperature (°C)
 
-On first boot a touch screen calibration display wizard will start and calibration data will be persisted
-On the devices screen, after scanning, you can pick an adapter to connect to
+On first boot a touch screen calibration display wizard will start and calibration data will be persisted. On the devices screen, after scanning, you can pick an adapter to connect to.
 
 ## Screenshots on 3.5 TFT display (values are random):
 
@@ -47,24 +46,23 @@ On the devices screen, after scanning, you can pick an adapter to connect to
 
 ![Secondary screen](res/4.png "Secondary screen")
 
-To move between the 2 data screens use the button on the bottom/center
-To reset the device use the button on the bottom/left; soft reset will just reboot while hard reset will remove calibaration and default device settings
+To switch between the 2 data screens use the button on the bottom/center. To reset the device use the button on the bottom/left; soft reset will just reboot while hard reset will remove calibaration and default device settings.
 
-Giulia TFT automatically handles reboot or deepsleeps when the Bluetooth connection is not working properly or the engine has been switched off
+Giulia TFT automatically handles reboot or deepsleeps when the Bluetooth connection is not working properly or the engine has been switched off.
 
 # Building
 
 You can compile it using [Visual Studio Code](https://code.visualstudio.com/) with [PlatformIO plugin](https://platformio.org/install/ide?install=vscode); the project provides builds for:
 
-- `env:denky32 will build the ESP32 firmware with custom partition table (OTA ready)
+- `env:denky32 will` build the ESP32 firmware with custom partition table (OTA ready)
 - `env:emulator_35_64bits` and `env:emulator_28_64bits` will build the emulator image so you can develop the UI without flashing it to the physical device
 
-Emulator must be properly setup as described here in the [Run LittlevGL via PlatformIO](https://github.com/lvgl/lv_platformio/blob/master/README.md) README as it depends on the OS
+Emulator must be properly setup as described in the [Run LittlevGL via PlatformIO](https://github.com/lvgl/lv_platformio/blob/master/README.md) README as it depends on the OS.
 
 Relevant `build_flags`:
 
 - `GT_SPLASH_MESSAGE`: default is ""Giulia TFT" but maybe you own a Stelvio :smile:
-- `LV_FONT_*` and `GT_FONT_*`: we're providing fonts for 3.5 and 2.8 displays; check emulators flags if you need to build for 2.8 TFT
+- `LV_FONT_*` and `GT_FONT_*`: fonts for 3.5 and 2.8 displays are provided; check emulators flags if you need to build for 2.8 TFT
 - `GT_DEMO`: this build won't try to connect to any devices and some random demo values will be displayed
 - `GT_VERBOSE_LOG`: enable verbose serial logging
 - `SPI_FREQUENCY`: display refresh frequency; the TFT I'm using for this project is serial and it' pretty slow but good enough
@@ -72,7 +70,7 @@ Relevant `build_flags`:
 
 # Right-Hand Drive models
 
-In [consts.h](includes/consts.h) I do `#define GT_ROTATION 3` because the TFT display is meant to be used in vertical and this rotation setting gives good visibility in landscape mode as I keep the device under AC controls; if you're driving a right-hand drive model you might wanna change this to `1`
+In [consts.h](includes/consts.h) I do `#define GT_ROTATION 3` because the TFT display is meant to be used in vertical and this rotation setting gives good visibility in landscape mode as I keep the device under AC controls; if you're driving a right-hand drive model you might wanna change this to `1`.
 
 # License
 
