@@ -28,23 +28,14 @@ Secondary screen:
 
 On first boot a touch screen calibration display wizard will start and calibration data will be persisted. On the devices screen, after scanning, you can pick an adapter to connect to.
 
-## Screenshots on 3.5 TFT display (values are random):
+## Screenshots on 3.5'' and 2.8'' TFT displays (values are random):
 
-### Connection screen
-
-![Connection screen](res/1.png "Connection screen")
-
-### Main screen
-
-![Main screen](res/2.png "Main screen")
-
-### Main screen (while regenerating DPF)
-
-![Main screen (while regenerating DPF)](res/3.png "Main screen (while regenerating DPF)")
-
-### Secondary screen
-
-![Secondary screen](res/4.png "Secondary screen")
+| Screen                        |                                             2.8''                                             |                                             3.5''                                             |
+| :---------------------------- | :-------------------------------------------------------------------------------------------: | :-------------------------------------------------------------------------------------------: |
+| Connection                    |                    ![Connection screen](res/2.8/1.png "Connection screen")                    |                    ![Connection screen](res/3.5/1.png "Connection screen")                    |
+| Main                          |                          ![Main screen](res/2.8/2.png "Main screen")                          |                          ![Main screen](res/3.5/2.png "Main screen")                          |
+| Main (while regenerating DPF) | ![Main screen (while regenerating DPF)](res/2.8/3.png "Main screen (while regenerating DPF)") | ![Main screen (while regenerating DPF)](res/3.5/3.png "Main screen (while regenerating DPF)") |
+| Secondary                     |                     ![Secondary screen](res/2.8/4.png "Secondary screen")                     |                     ![Secondary screen](res/3.5/4.png "Secondary screen")                     |
 
 To switch between the 2 data screens use the button on the bottom/center. To reset the device use the button on the bottom/left; soft reset will just reboot while hard reset will remove calibaration and default device settings.
 
@@ -54,15 +45,15 @@ Giulia TFT automatically handles reboot or deepsleeps when the Bluetooth connect
 
 You can compile it using [Visual Studio Code](https://code.visualstudio.com/) with [PlatformIO plugin](https://platformio.org/install/ide?install=vscode); the project provides builds for:
 
-- `env:denky32 will` build the ESP32 firmware with custom partition table (OTA ready)
+- `env:denky32` will build the ESP32 firmware with custom partition table (OTA ready)
 - `env:emulator_35_64bits` and `env:emulator_28_64bits` will build the emulator image so you can develop the UI without flashing it to the physical device
 
 Emulator must be properly setup as described in the [Run LittlevGL via PlatformIO](https://github.com/lvgl/lv_platformio/blob/master/README.md) README as it depends on the OS.
 
 Relevant `build_flags`:
 
-- `GT_SPLASH_MESSAGE`: default is ""Giulia TFT" but maybe you own a Stelvio :smile:
-- `LV_FONT_*` and `GT_FONT_*`: fonts for 3.5 and 2.8 displays are provided; check emulators flags if you need to build for 2.8 TFT
+- `GT_SPLASH_MESSAGE`: default is "Giulia TFT" but maybe you own a Stelvio :smile:
+- `LV_FONT_*` and `GT_FONT_*`: fonts for 3.5'' and 2.8'' displays are provided; check emulators flags if you need to build for 2.8 TFT
 - `GT_DEMO`: this build won't try to connect to any devices and some random demo values will be displayed
 - `GT_VERBOSE_LOG`: enable verbose serial logging
 - `SPI_FREQUENCY`: display refresh frequency; the TFT I'm using for this project is serial and it' pretty slow but good enough
