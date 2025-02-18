@@ -28,15 +28,15 @@
 #endif
 
 #ifdef DPF_AUDIO_NOTIFICATION
-int8_t PROGMEM NOTE[] = { NOTE_A4, SCORE_END};
-XT_DAC_Audio_Class DacAudio(26, 0);                                         
+int8_t PROGMEM NOTE[] = {NOTE_A4, SCORE_END};
+XT_DAC_Audio_Class DacAudio(26, 0);
 XT_MusicScore_Class Beep(NOTE, TEMPO_PRESTO, INSTRUMENT_PIANO);
 #endif
 
 #define BT_DISCOVER_TIME 3000
 #define LOOP_DELAY 3
 #define ELM_LOOP_DELAY 3
-#define RT_SENSORS_DELAY 50
+#define RT_SENSORS_DELAY 20
 #define SWITCHED_STATE_DELAY 1000
 #define ELM_QUERY_TIMEOUT 2000
 #define RECONNECTION_DELAY 5000
@@ -194,8 +194,11 @@ static int _get_demo_v(int pid)
   case 0x40B2:
   case 0x40B3:
   case 0x30B4:
+    return -1;
   case 0x04FE:
     return 70 + (int)(((float)rand() / (float)(RAND_MAX)) * 10) - 10;
+  case 0x194D:
+    return 7;
   default:
     return -1;
   }
@@ -254,6 +257,37 @@ void _gt_btCallback(esp_spp_cb_event_t event, esp_spp_cb_param_t *param)
   }
 }
 
+int _tireTempFromPayload(char *payload)
+{
+  if (payload == NULL) {
+    return -1;
+  }
+
+  char *stopstr;
+  char *ptr = strrchr(payload, ':');
+
+  if (ptr == NULL || *(ptr) == '\0' || *(ptr + 1) == '\0' || *(ptr + 2) == '\0') 
+  {
+    return -1;
+  }
+
+  ptr += 3; 
+
+  char hex[3];
+  memcpy(hex, ptr, 2);
+  hex[2] = '\0';
+
+  char *endptr; 
+  long t = strtol(hex, &endptr, 16);
+
+  if (*endptr != '\0')
+  { 
+    return -1;
+  }
+
+  return (int)(t - 50);
+}
+
 /**
  * do connect to ELM327 device
  */
@@ -272,7 +306,7 @@ static bool _gt_elmConnect()
 
   if (SerialBT.connect(BTAddress(_mac)))
   {
-    if (!btELM327.begin(SerialBT, ELM_DEBUG, ELM_QUERY_TIMEOUT))
+    if (!btELM327.begin(SerialBT, ELM_DEBUG, ELM_QUERY_TIMEOUT, ISO_15765_29_BIT_500_KBAUD))
     {
       LOG("Can't init connection to ELM327 device %s", _mac);
     }
@@ -325,7 +359,7 @@ static int _gt_setHeader(int headerId, const char *header)
 /**
  * process PID in blocking mode
  */
-static float _gt_processPID(const uint8_t &service, const uint16_t &pid, const uint8_t &numResponses, const uint8_t &numExpectedBytes, const double &scaleFactor, const float &bias)
+static double _gt_processPID(const uint8_t &service, const uint16_t &pid, const uint8_t &numResponses, const uint8_t &numExpectedBytes, const double &scaleFactor, const float &bias)
 {
   unsigned long timeoutAt = millis() + (ELM_QUERY_TIMEOUT * 2);
   while (millis() < timeoutAt)
@@ -336,7 +370,7 @@ static float _gt_processPID(const uint8_t &service, const uint16_t &pid, const u
       delay(ELM_LOOP_DELAY);
       return _get_demo_v(pid);
     }
-    float value = btELM327.processPID(service, pid, numResponses, numExpectedBytes, scaleFactor, bias);
+    double value = btELM327.processPID(service, pid, numResponses, numExpectedBytes, scaleFactor, bias);
     if (btELM327.nb_rx_state == ELM_SUCCESS)
     {
       VLOG("Value for %x is %.2f", pid, value);
@@ -570,10 +604,22 @@ void _gt_elmLoop(void *pvParameters)
 
         if (_currentHeaderId == HEADER_DAC7F1_ID)
         {
-          _tireTempFL = _gt_processPID(0x22, 0x40B1, 1, 3, 0.0000305, 0.0f);
-          _tireTempFR = _gt_processPID(0x22, 0x40B2, 1, 3, 0.0000305, 0.0f);
-          _tireTempRL = _gt_processPID(0x22, 0x40B3, 1, 3, 0.0000305, 0.0f);
-          _tireTempRR = _gt_processPID(0x22, 0x40B4, 1, 3, 0.0000305, 0.0f);
+          int r = (int) _gt_processPID(0x22, 0x40B1, 3, 7, 1, 0);
+          if (r!=-1) {
+            _tireTempFL = btELM327.responseByte_5 - 50;
+          }
+          r = (int) _gt_processPID(0x22, 0x40B2, 3, 7, 1, 0);
+          if (r!=-1) {
+            _tireTempFR = btELM327.responseByte_5 - 50;
+          }
+          r = (int) _gt_processPID(0x22, 0x40B3, 3, 7, 1, 0);
+          if (r!=-1) {
+            _tireTempRL = btELM327.responseByte_5 - 50;
+          }
+          r = (int) _gt_processPID(0x22, 0x40B4, 3, 7, 1, 0);
+          if (r!=-1) {
+            _tireTempRR = btELM327.responseByte_5 - 50;
+          }
         }
 
         if (_currentHeaderId != HEADER_DA18F1_ID)
@@ -942,11 +988,14 @@ void loop()
 
 #ifdef DPF_AUDIO_NOTIFICATION
       DacAudio.FillBuffer();
-      if (_dpfRegeneration > 0 && !DacAudio.AlreadyPlaying(&Beep) && _shouldPlayDPFSound) {
+      if (_dpfRegeneration > 0 && !DacAudio.AlreadyPlaying(&Beep) && _shouldPlayDPFSound)
+      {
         _shouldPlayDPFSound = false;
         DacAudio.DacVolume = 100;
         DacAudio.Play(&Beep, false);
-      } else if (_dpfRegeneration == 0) {
+      }
+      else if (_dpfRegeneration == 0)
+      {
         _shouldPlayDPFSound = true;
       }
 #endif
