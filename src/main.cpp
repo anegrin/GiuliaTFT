@@ -604,19 +604,19 @@ void _gt_elmLoop(void *pvParameters)
 
         if (_currentHeaderId == HEADER_DAC7F1_ID)
         {
-          int r = (int) _gt_processPID(0x22, 0x40B1, 3, 7, 1, 0);
+          int r = (int) _gt_processPID(0x22, 0x40B1, 2, 7, 1, 0);
           if (r!=-1) {
             _tireTempFL = btELM327.responseByte_5 - 50;
           }
-          r = (int) _gt_processPID(0x22, 0x40B2, 3, 7, 1, 0);
+          r = (int) _gt_processPID(0x22, 0x40B2, 2, 7, 1, 0);
           if (r!=-1) {
             _tireTempFR = btELM327.responseByte_5 - 50;
           }
-          r = (int) _gt_processPID(0x22, 0x40B3, 3, 7, 1, 0);
+          r = (int) _gt_processPID(0x22, 0x40B3, 2, 7, 1, 0);
           if (r!=-1) {
             _tireTempRL = btELM327.responseByte_5 - 50;
           }
-          r = (int) _gt_processPID(0x22, 0x40B4, 3, 7, 1, 0);
+          r = (int) _gt_processPID(0x22, 0x40B4, 2, 7, 1, 0);
           if (r!=-1) {
             _tireTempRR = btELM327.responseByte_5 - 50;
           }
@@ -658,13 +658,13 @@ void _gt_elmLoop(void *pvParameters)
           _batteryVoltage = _gt_processPID(0x01, 0x42, 1, 2, 0.001, 0);
         }
 
-        if (_batteryIBS != -1 &&
-            _engineOilDegradation != -1 &&
-            _tireTempFL != -1 &&
-            _tireTempFR != -1 &&
-            _tireTempRL != -1 &&
-            _tireTempRR != -1 &&
-            _gearboxOilTemp != -1 &&
+        if (_batteryIBS != -1 ||
+            _engineOilDegradation != -1 ||
+            _tireTempFL != -1 ||
+            _tireTempFR != -1 ||
+            _tireTempRL != -1 ||
+            _tireTempRR != -1 ||
+            _gearboxOilTemp != -1 ||
             _batteryVoltage != -1)
         {
           _valuesNonRtLastQueringMs = millis() + NON_RT_SENSORS_DELAY;
