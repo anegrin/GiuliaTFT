@@ -89,7 +89,7 @@ void gt_setTireTemperatureFL(int celsius)
     _currentTireTempFL = celsius;
     if (_currentTireTempFL != -1 && lv_obj_is_valid(_tire_temp_fl_label))
     {
-      char str[8];
+      char str[32];
       sprintf(str, "%d °C", celsius % 1000); // module is for overflow protection
       lv_label_set_text(_tire_temp_fl_label, str);
     }
@@ -103,7 +103,7 @@ void gt_setTireTemperatureFR(int celsius)
     _currentTireTempFR = celsius;
     if (_currentTireTempFR != -1 && lv_obj_is_valid(_tire_temp_fr_label))
     {
-      char str[8];
+      char str[32];
       sprintf(str, "%d °C", celsius % 1000); // module is for overflow protection
       lv_label_set_text(_tire_temp_fr_label, str);
     }
@@ -117,7 +117,7 @@ void gt_setTireTemperatureRL(int celsius)
     _currentTireTempRL = celsius;
     if (_currentTireTempRL != -1 && lv_obj_is_valid(_tire_temp_rl_label))
     {
-      char str[8];
+      char str[32];
       sprintf(str, "%d °C", celsius % 1000); // module is for overflow protection
       lv_label_set_text(_tire_temp_rl_label, str);
     }
@@ -131,7 +131,7 @@ void gt_setTireTemperatureRR(int celsius)
     _currentTireTempRR = celsius;
     if (_currentTireTempRR != -1 && lv_obj_is_valid(_tire_temp_rr_label))
     {
-      char str[8];
+      char str[32];
       sprintf(str, "%d °C", celsius % 1000); // module is for overflow protection
       lv_label_set_text(_tire_temp_rr_label, str);
     }

@@ -19,6 +19,8 @@
         "unordered_set": "cpp",
         "vector": "cpp",
         "memory": "cpp",
-        "gt_main.h": "c"
+        "gt_main.h": "c",
+        "new": "cpp",
+        "initializer_list": "cpp"
     }
 }

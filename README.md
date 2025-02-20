@@ -23,10 +23,12 @@ Secondary screen:
 - Battery voltage (V) 
 - Battery IBS (%)
 - Engine oil degradation (%)
-- Tires temperatures (°C) - *validation in progress*
+- Tires temperatures (°C)
 - Gearbox oil temperature (°C)
 
 On first boot a touch screen calibration display wizard will start and calibration data will be persisted. On the devices screen, after scanning, you can pick an adapter to connect to.
+
+If you have a buzzer connected you will get a 5 beeps warning when DPF regeneration process starts.
 
 ## Screenshots on 3.5'' and 2.8'' TFT displays (values are random):
 
@@ -58,6 +60,7 @@ Relevant `build_flags`:
 - `GT_VERBOSE_LOG`: enable verbose serial logging
 - `SPI_FREQUENCY`: display refresh frequency; the TFT I'm using for this project is serial and it' pretty slow but good enough
 - `ELM_DEBUG`: enable VERY verbose ELM protocol logs
+- `GT_BUZZER_PIN`: buzzer connection GPIO
 
 # Right-Hand Drive models
 
@@ -77,10 +80,10 @@ Libraries:
 
 - [TFT_eSPI](https://github.com/Bodmer/TFT_eSPI) licensed [MIT](https://github.com/Bodmer/TFT_eSPI/blob/master/license.txt)
 - [ELMDuino](https://github.com/PowerBroker2/ELMduino) licensed [MIT](https://github.com/PowerBroker2/ELMduino/blob/master/LICENSE.md)
+- [ESP32-Buzzer](https://github.com/hammikb/ESP32-Buzzer) licensed [MIT](https://github.com/hammikb/ESP32-Buzzer/blob/main/LICENSE)
 - [LVGL](https://github.com/lvgl/lvgl) licensed [MIT](https://github.com/lvgl/lvgl/blob/master/LICENCE.txt)
 - [TFT_eWidget](https://github.com/Bodmer/TFT_eWidget) licensed [0BSD](https://github.com/Bodmer/TFT_eWidget/blob/main/license.txt)
 - [log4arduino](https://github.com/jandelgado/log4arduino) licensed [MIT](https://github.com/jandelgado/log4arduino/blob/master/LICENSE)
-- [XTronical_XT_DAC_Audio](https://github.com/WeekendWarrior1/XTronical_XT_DAC_Audio_Mirror) licensed [GPLv3](https://www.gnu.org/licenses/gpl-3.0.txt)
 - [lv_drivers](https://github.com/lvgl/lv_drivers) emulator only - licensed [MIT](https://github.com/lvgl/lv_drivers/blob/master/LICENSE)
 
 # Support

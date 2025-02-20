@@ -9,8 +9,7 @@
 #include <log4arduino.h>
 
 #ifdef DPF_AUDIO_NOTIFICATION
-#include <MusicDefinitions.h>
-#include <XT_DAC_Audio.h>
+#include "ESP32S3Buzzer.h"
 #endif
 
 #include "Free_Fonts.h"
@@ -26,21 +25,19 @@
 #ifndef GT_DEMO
 #define GT_DEMO false // show demo random data
 #endif
-
-#ifdef DPF_AUDIO_NOTIFICATION
-int8_t PROGMEM NOTE[] = { NOTE_A4, SCORE_END};
-XT_DAC_Audio_Class DacAudio(26, 0);                                         
-XT_MusicScore_Class Beep(NOTE, TEMPO_PRESTO, INSTRUMENT_PIANO);
+#ifndef GT_BUZZER_PIN
+#define GT_BUZZER_PIN 25
 #endif
 
 #define BT_DISCOVER_TIME 3000
-#define LOOP_DELAY 5
-#define ELM_LOOP_DELAY 5
-#define RT_SENSORS_DELAY 250
+#define LOOP_DELAY 3
+#define ELM_LOOP_DELAY 3
+#define RT_SENSORS_DELAY 20
 #define SWITCHED_STATE_DELAY 1000
 #define ELM_QUERY_TIMEOUT 2000
 #define RECONNECTION_DELAY 5000
-#define NON_RT_SENSORS_DELAY 10000
+#define NON_RT_SENSORS_DELAY 1000
+#define VALUES_SENSORS_DELAY 1000
 #define QUERY_OFFSET 300 // to time-distribute data loading on main screen
 #define NO_DATA_TIMEOUT 60000
 #define DEEPSLEEP_DURATION_US 15000000L      // 15s
@@ -60,6 +57,11 @@ XT_MusicScore_Class Beep(NOTE, TEMPO_PRESTO, INSTRUMENT_PIANO);
 
 BluetoothSerial SerialBT;
 ELM327 btELM327;
+
+#ifdef DPF_AUDIO_NOTIFICATION
+ESP32S3Buzzer buzzer(GT_BUZZER_PIN, 0);
+#endif
+
 
 static lv_disp_draw_buf_t _draw_buf;
 static lv_color_t _screen_buffer[GT_SCREEN_WIDTH * GT_SCREEN_HEIGTH / 10];
@@ -92,7 +94,7 @@ static int _airTemp = -1;
 static int _dpfClogging = -1;
 static int _dpfTemperature = -1;
 static int _dpfRegeneration = -1;
-static bool _shouldPlayDPFSound = true;
+static bool _shouldInitDPFSound = true;
 static int _dpfDistance = -1;
 static int _dpfCount = -1;
 static float _batteryVoltage = -1;
@@ -123,7 +125,7 @@ void _onStateChange(int screenId, bool active)
       _dpfClogging = -1;
       _dpfTemperature = -1;
       _dpfRegeneration = -1;
-      _shouldPlayDPFSound = true;
+      _shouldInitDPFSound = true;
       _dpfDistance = -1;
 
       unsigned long now = millis();
@@ -193,8 +195,11 @@ static int _get_demo_v(int pid)
   case 0x40B2:
   case 0x40B3:
   case 0x30B4:
+    return -1;
   case 0x04FE:
     return 70 + (int)(((float)rand() / (float)(RAND_MAX)) * 10) - 10;
+  case 0x194D:
+    return 7;
   default:
     return -1;
   }
@@ -271,7 +276,7 @@ static bool _gt_elmConnect()
 
   if (SerialBT.connect(BTAddress(_mac)))
   {
-    if (!btELM327.begin(SerialBT, ELM_DEBUG, ELM_QUERY_TIMEOUT))
+    if (!btELM327.begin(SerialBT, ELM_DEBUG, ELM_QUERY_TIMEOUT, ISO_15765_29_BIT_500_KBAUD))
     {
       LOG("Can't init connection to ELM327 device %s", _mac);
     }
@@ -324,7 +329,7 @@ static int _gt_setHeader(int headerId, const char *header)
 /**
  * process PID in blocking mode
  */
-static float _gt_processPID(const uint8_t &service, const uint16_t &pid, const uint8_t &numResponses, const uint8_t &numExpectedBytes, const double &scaleFactor, const float &bias)
+static double _gt_processPID(const uint8_t &service, const uint16_t &pid, const uint8_t &numResponses, const uint8_t &numExpectedBytes, const double &scaleFactor, const float &bias)
 {
   unsigned long timeoutAt = millis() + (ELM_QUERY_TIMEOUT * 2);
   while (millis() < timeoutAt)
@@ -335,7 +340,7 @@ static float _gt_processPID(const uint8_t &service, const uint16_t &pid, const u
       delay(ELM_LOOP_DELAY);
       return _get_demo_v(pid);
     }
-    float value = btELM327.processPID(service, pid, numResponses, numExpectedBytes, scaleFactor, bias);
+    double value = btELM327.processPID(service, pid, numResponses, numExpectedBytes, scaleFactor, bias);
     if (btELM327.nb_rx_state == ELM_SUCCESS)
     {
       VLOG("Value for %x is %.2f", pid, value);
@@ -569,10 +574,22 @@ void _gt_elmLoop(void *pvParameters)
 
         if (_currentHeaderId == HEADER_DAC7F1_ID)
         {
-          _tireTempFL = _gt_processPID(0x22, 0x40B1, 1, 3, 0.0000305, 0.0f);
-          _tireTempFR = _gt_processPID(0x22, 0x40B2, 1, 3, 0.0000305, 0.0f);
-          _tireTempRL = _gt_processPID(0x22, 0x40B3, 1, 3, 0.0000305, 0.0f);
-          _tireTempRR = _gt_processPID(0x22, 0x40B4, 1, 3, 0.0000305, 0.0f);
+          int r = (int) _gt_processPID(0x22, 0x40B1, 2, 7, 1, 0);
+          if (r>0) {
+            _tireTempFL = btELM327.responseByte_5 - 50;
+          }
+          r = (int) _gt_processPID(0x22, 0x40B2, 2, 7, 1, 0);
+          if (r>0) {
+            _tireTempFR = btELM327.responseByte_5 - 50;
+          }
+          r = (int) _gt_processPID(0x22, 0x40B3, 2, 7, 1, 0);
+          if (r>0) {
+            _tireTempRL = btELM327.responseByte_5 - 50;
+          }
+          r = (int) _gt_processPID(0x22, 0x40B4, 2, 7, 1, 0);
+          if (r>0) {
+            _tireTempRR = btELM327.responseByte_5 - 50;
+          }
         }
 
         if (_currentHeaderId != HEADER_DA18F1_ID)
@@ -609,19 +626,12 @@ void _gt_elmLoop(void *pvParameters)
         if (_currentHeaderId == HEADER_DB33F1_ID)
         {
           _batteryVoltage = _gt_processPID(0x01, 0x42, 1, 2, 0.001, 0);
+          if (_batteryVoltage != -1)
+          {
+            _valuesNonRtLastQueringMs = millis() + NON_RT_SENSORS_DELAY;
+          }
         }
 
-        if (_batteryIBS != -1 &&
-            _engineOilDegradation != -1 &&
-            _tireTempFL != -1 &&
-            _tireTempFR != -1 &&
-            _tireTempRL != -1 &&
-            _tireTempRR != -1 &&
-            _gearboxOilTemp != -1 &&
-            _batteryVoltage != -1)
-        {
-          _valuesNonRtLastQueringMs = millis() + NON_RT_SENSORS_DELAY;
-        }
       }
     }
   }
@@ -940,13 +950,27 @@ void loop()
       gt_setDpfTemperature(_dpfTemperature);
 
 #ifdef DPF_AUDIO_NOTIFICATION
-      DacAudio.FillBuffer();
-      if (_dpfRegeneration > 0 && !DacAudio.AlreadyPlaying(&Beep) && _shouldPlayDPFSound) {
-        _shouldPlayDPFSound = false;
-        DacAudio.DacVolume = 100;
-        DacAudio.Play(&Beep, false);
-      } else if (_dpfRegeneration == 0) {
-        _shouldPlayDPFSound = true;
+      if (_dpfRegeneration > 0 && _shouldInitDPFSound)
+      {
+        buzzer.begin();
+    
+        // Add a tone to the queue
+        uint32_t freq = 1000;
+        uint32_t onDuration = 200;
+        uint32_t offDuration = 200;
+        uint16_t cycles = 5;
+        buzzer.tone(freq, onDuration, offDuration, cycles);
+        _shouldInitDPFSound = false;
+      }
+
+      if (_dpfRegeneration > 0 && !_shouldInitDPFSound) 
+      {
+        buzzer.update();
+      } 
+      else if (_dpfRegeneration == 0)
+      {
+        buzzer.end();
+        _shouldInitDPFSound = true;
       }
 #endif
 
